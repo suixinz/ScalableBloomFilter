@@ -1,0 +1,24 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile with warnings as errors
+        run: gcc -std=c11 -Wall -Wextra -Werror -c bloom_filter.c murmur3.c
+
+      - name: Unit tests
+        run: |
+          gcc -std=c11 -O2 bloom_filter.c murmur3.c bf_test.c -lm -o test_bf
+          ./test_bf
+
+      - name: ASan + UBSan
+        run: |
+          gcc -std=c11 -g -fsanitize=address,undefined -fno-omit-frame-pointer \
+              bloom_filter.c murmur3.c bf_test.c -lm -o test_bf_asan
+          ./test_bf_asan
